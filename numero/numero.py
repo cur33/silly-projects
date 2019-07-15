@@ -14,8 +14,10 @@ import time
 SECS_TO_RUN = 3
 SECS_TO_WAIT = 0.05
 
-NUM_DIGITS = 5
 DIGIT_SEP = ' '
+NUM_DIGITS = 5
+MIN_NUM_DIGITS = 3
+MAX_NUM_DIGITS = 20
 
 ALL_DIGITS = list(map(str, range(0, 10)))
 
@@ -116,47 +118,49 @@ def cols_lines():
 def get_user_settings():
     global NUM_DIGITS, FINAL_DIGITS, FINALIZE_RANDOMLY
 
-    print('Enter the number for the option you want:')
+    print('\nEnter the number for the option you want:')
     print('\t1. Specify a number of digits to generate')
     print('\t2. Provide a specific number to generate')
-    res = input('Option: ')
+    res = input('\nOption: ')
     if res not in '12':
         print('Option not recognized')
         sys.exit(1)
 
-    minnum, maxnum = 3, 20
+    minnum, maxnum = MIN_NUM_DIGITS, MAX_NUM_DIGITS
     if res == '1':
-        prompt = f'Enter a number of digits between {minnum} and {maxnum}: '
+        prompt = f'\nEnter a number of digits between {minnum} and {maxnum}: '
         numdigits = input(prompt)
         if not (numdigits.isdigit() and minnum <= int(numdigits) <= maxnum):
             raise ValueError('Enter a valid number of digits')
         NUM_DIGITS = int(numdigits)
     elif res == '2':
-        prompt = f'Enter a number that has between {minnum} and {maxnum} digits: '
+        prompt = f'\nEnter a number that has between {minnum} and {maxnum} digits: '
         num = input(prompt)
         if not (num.isdigit() and minnum <= len(num) <= maxnum):
             raise ValueError('Enter a valid number')
         FINAL_DIGITS = [digit for digit in num]
         NUM_DIGITS = len(FINAL_DIGITS)
 
-    msg = 'Would you like to display the final digits in a random order? (y/n) '
+    msg = '\nWould you like to display the final digits in a random order? (y/n) '
     resp = input(msg)
     FINALIZE_RANDOMLY = resp == 'y'
 
 
 def get_random_settings():
-    pass
+    global NUM_DIGITS, FINAL_DIGITS, FINALIZE_RANDOMLY
+    NUM_DIGITS = random.randint(MIN_NUM_DIGITS, MAX_NUM_DIGITS)
+    FINALIZE_RANDOMLY = bool(random.randint(0, 1))
 
 
 ### Main ###
 
 
 def main():
-    print('\nNow is the time to resize the console, if you wish\n')
+    print('\nNow is the time to resize the console, if you wish.')
     pause(1)
 
     # Initialize the necessary settings either randomly or from user input
-    resp = input('Use default random values? (y/n) ')
+    resp = input('\nUse default random values? (y/n) ')
     if resp == 'y':
         get_random_settings()
     else:
@@ -184,14 +188,15 @@ def main():
     # Display the final prompt at the bottom of the screen (this is useful for
     # keeping the console window open until user ready to quit)
     newlines(lines_after)
-    response = input('Please press enter when complete . . . ').rstrip('\n')
+    response = input('Please press enter when complete . . . ')
     clear_screen()
     if response:
-        print(f'I told you to hit enter; why\'d you type "{response}"???')
+        print(f'\nI told you to hit enter; why\'d you type "{response}"???')
 
 
 if __name__ == '__main__':
     try:
         main()
     except:
+        print('Error :(')
         pass
