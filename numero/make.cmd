@@ -1,0 +1,1 @@
+pyinstaller digits.py --onefile
