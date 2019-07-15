@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-"""This version of numero generates a completely new random number to display in
-each iteration."""
+"""This version of numero ensures that each digit changes to a different digit
+in each iteration."""
 
 import os
 import random
@@ -11,11 +11,13 @@ import time
 
 ### Global "Constants" ###
 
-SECS_TO_WAIT = 0.05
 SECS_TO_RUN = 3
+SECS_TO_WAIT = 0.05
 
 NUM_DIGITS = 5
 DIGIT_SEP = ' '
+
+ALL_DIGITS = list(map(str, range(0, 10)))
 
 FINAL_DIGITS = [] # a list of digit characters
 FINAL_SLEEP_MULTIPLIER = 1.5
@@ -25,7 +27,41 @@ FINALIZE_RANDOMLY = True
 
 
 def rand_digits():
-    return [str(random.randint(0, 9)) for nd in range(NUM_DIGITS)]
+    return [random.choice(ALL_DIGITS) for nd in range(NUM_DIGITS)]
+
+
+def randomize(digits):
+    newdigits = []
+    for digit in digits:
+        possible_digits = [d for d in ALL_DIGITS if d != digit]
+        newdigits.append(random.choice(possible_digits))
+    return newdigits
+
+
+def finalize(digits, final_digits, width=0):
+    # Determine the order in which to display the final digits
+    indices = list(range(NUM_DIGITS))
+    if FINALIZE_RANDOMLY:
+        random.shuffle(indices)
+
+    # Ensure that the next digits displayed are different from both the previous
+    # digits and the final ones
+    prev_digits = digits
+    digits = randomize(prev_digits)
+    for i, digit in enumerate(digits):
+        if digit == final_digits[i]:
+            disallowed = (prev_digits[i], final_digits[i])
+            choices = [d for d in ALL_DIGITS if d not in disallowed]
+            digits[i] = random.choice(choices)
+
+    # Print the initial digits
+    print_number(digits, width=width)
+
+    sleeptime = SECS_TO_WAIT
+    for ndx in indices:
+        digits[ndx] = final_digits[ndx]
+        sleeptime *= FINAL_SLEEP_MULTIPLIER
+        print_number(digits, sleeptime=sleeptime, width=width)
 
 
 ### Printing ###
@@ -63,22 +99,7 @@ def pause(secs=SECS_TO_WAIT):
     time.sleep(secs)
 
 
-### Generating Final Number ###
-
-
-def finalize(digits, final_digits, width=0):
-    indices = list(range(NUM_DIGITS))
-    if FINALIZE_RANDOMLY:
-        random.shuffle(indices)
-
-    sleeptime = SECS_TO_WAIT
-    for ndx in indices:
-        digits[ndx] = final_digits[ndx]
-        sleeptime *= FINAL_SLEEP_MULTIPLIER
-        print_number(digits, sleeptime=sleeptime, width=width)
-
-
-### Terminal Info ###
+### Terminal & System Info ###
 
 
 def is_windows():
@@ -89,10 +110,58 @@ def cols_lines():
     return shutil.get_terminal_size()
 
 
+### Getting Input Values ###
+
+
+def get_user_settings():
+    global NUM_DIGITS, FINAL_DIGITS, FINALIZE_RANDOMLY
+
+    print('Enter the number for the option you want:')
+    print('\t1. Specify a number of digits to generate')
+    print('\t2. Provide a specific number to generate')
+    res = input('Option: ')
+    if res not in '12':
+        print('Option not recognized')
+        sys.exit(1)
+
+    minnum, maxnum = 3, 20
+    if res == '1':
+        prompt = f'Enter a number of digits between {minnum} and {maxnum}: '
+        numdigits = input(prompt)
+        if not (numdigits.isdigit() and minnum <= int(numdigits) <= maxnum):
+            raise ValueError('Enter a valid number of digits')
+        NUM_DIGITS = int(numdigits)
+    elif res == '2':
+        prompt = f'Enter a number that has between {minnum} and {maxnum} digits: '
+        num = input(prompt)
+        if not (num.isdigit() and minnum <= len(num) <= maxnum):
+            raise ValueError('Enter a valid number')
+        FINAL_DIGITS = [digit for digit in num]
+        NUM_DIGITS = len(FINAL_DIGITS)
+
+    msg = 'Would you like to display the final digits in a random order? (y/n) '
+    resp = input(msg)
+    FINALIZE_RANDOMLY = resp == 'y'
+
+
+def get_random_settings():
+    pass
+
+
 ### Main ###
 
 
 def main():
+    print('\nNow is the time to resize the console, if you wish\n')
+    pause(1)
+
+    # Initialize the necessary settings either randomly or from user input
+    resp = input('Use default random values? (y/n) ')
+    if resp == 'y':
+        get_random_settings()
+    else:
+        get_user_settings()
+
     # Center the number in the terminal
     cols, lines = cols_lines()
     lines_before = lines // 2
@@ -100,12 +169,13 @@ def main():
     clear_screen()
     newlines(lines_before)
 
-    # Determine the final number to generate
+    # Generate the initial and final numbers to display
+    digits = rand_digits()
     final_digits = FINAL_DIGITS if FINAL_DIGITS else rand_digits()
 
     start = time.perf_counter()
     while time.perf_counter() - start < SECS_TO_RUN:
-        digits = rand_digits()
+        digits = randomize(digits)
         print_number(digits, width=cols)
 
     # Change current number to final number, one digit at a time
@@ -121,4 +191,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except:
+        pass
