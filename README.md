@@ -3,8 +3,8 @@
 ## Description
 
 This is just a collection of small projects that I work on for fun, or for
-whatever other reason I so choose, but for which I do not care to make a
-completely separate repository.
+whatever other reason I so choose, but for which I do not care to make
+separate repositories.
 
 ## List of Projects
 
