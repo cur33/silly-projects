@@ -13,6 +13,7 @@ import time
 
 SECS_TO_RUN = 3
 SECS_TO_WAIT = 0.05
+MAX_SECS_TO_WAIT = 0.5
 
 DIGIT_SEP = ' '
 NUM_DIGITS = 5
@@ -62,7 +63,7 @@ def finalize(digits, final_digits, width=0):
     sleeptime = SECS_TO_WAIT
     for ndx in indices:
         digits[ndx] = final_digits[ndx]
-        sleeptime *= FINAL_SLEEP_MULTIPLIER
+        sleeptime = min(sleeptime * FINAL_SLEEP_MULTIPLIER, MAX_SECS_TO_WAIT)
         print_number(digits, sleeptime=sleeptime, width=width)
 
 
